@@ -1,0 +1,38 @@
+﻿@page "/"
+
+@inherits OwningComponentBase<ViewService>
+
+@inject NotificationService1 NotificationService1
+@inject NotificationService2 NotificationService2
+@inject TransientService TransientService
+@inject IServiceProvider ServiceProvider
+
+<PageTitle>Index</PageTitle>
+
+<h1>Hello, world!</h1>
+
+<div class="bg-primary text-white m-2 p-2">
+    <div>
+        Service Id: @Service.Uid
+    </div>
+    <div>
+        Service Notification Service 1 Id: @Service.NotificationService1?.Uid
+    </div>
+    <div>
+        Service Notification Service 2 Id: @Service.NotificationService2?.Uid
+    </div>
+</div>
+
+<div class="bg-dark text-white m-2 p-2">
+    <div>
+        Notification Service 1 Id: @NotificationService1.Uid
+    </div>
+    <div>
+        Notification Service 2 Id: @NotificationService2.Uid
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+        => Service.SetParentServices(ServiceProvider);
+}
