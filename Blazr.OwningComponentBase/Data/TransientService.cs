@@ -9,6 +9,6 @@ public class TransientService : IDisposable
     public TransientService()
         => Debug.WriteLine($"{this.GetType().Name} - created instance: {Uid}");
 
-    public void Dispose()
+    public virtual void Dispose()
         => Debug.WriteLine($"{this.GetType().Name} - Disposed instance: {Uid}");
 }

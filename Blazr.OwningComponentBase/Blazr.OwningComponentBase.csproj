@@ -6,4 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Remove="Pages\Index1.razor" />
+    <Content Remove="Pages\Test2.razor" />
+  </ItemGroup>
+
 </Project>

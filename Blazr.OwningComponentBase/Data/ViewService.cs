@@ -5,25 +5,45 @@ namespace Blazr.OwningComponentBase.Data;
 public class ViewService : IDisposable
 {
     public Guid Uid = Guid.NewGuid();
-    public NotificationService1? NotificationService1 = default!;
-    public NotificationService2? NotificationService2 = default!;
-    public TransientService? TransientService = default!;
-
-    public ViewService(NotificationService1 notificationService1, TransientService transientService)
+    private NotificationService? _notificationService;
+    public TransientService TransientService;
+    public NotificationService NotificationService
     {
-        Debug.WriteLine($"{this.GetType().Name} - created instance: {Uid}");
-        NotificationService1 = notificationService1;
-        Debug.WriteLine($"{this.GetType().Name} - {NotificationService1.GetType().Name} instance: {NotificationService1.Uid}");
+        get
+        {
+            if (_notificationService is null)
+                throw new InvalidOperationException("No service is registered.  You must run SetParentServices before using the service.");
+
+            return _notificationService!;
+        }
+    }
+
+
+    //public ViewService(NotificationService notificationService, TransientService transientService)
+    //{
+    //    Debug.WriteLine($"{this.GetType().Name} - created instance: {Uid}");
+    //    _notificationService = notificationService;
+    //    Debug.WriteLine($"{this.GetType().Name} - {NotificationService.GetType().Name} instance: {NotificationService.Uid}");
+    //    TransientService = transientService;
+    //    Debug.WriteLine($"{this.GetType().Name} - {TransientService.GetType().Name} instance: {TransientService.Uid}");
+    //}
+
+    public ViewService(TransientService transientService)
+    {
         TransientService = transientService;
-        Debug.WriteLine($"{this.GetType().Name} - {TransientService.GetType().Name} instance: {TransientService.Uid}");
+        Debug.WriteLine($"{this.GetType().Name} - created instance: {Uid}");
     }
 
-    public void SetParentServices(IServiceProvider serviceProvider)
+    public void SetServices(IServiceProvider serviceProvider)
     {
-        NotificationService2 = serviceProvider.GetService<NotificationService2>();
-        Debug.WriteLine($"{this.GetType().Name} - {NotificationService2?.GetType().Name} instance: {NotificationService2?.Uid ?? Guid.Empty}");
+        _notificationService = serviceProvider.GetService<NotificationService>();
     }
+
+    public void UpdateView()
+        => NotificationService.NotifyChanged();
 
     public void Dispose()
-        => Debug.WriteLine($"{this.GetType().Name} - Disposed instance: {Uid}");
+    {
+        Debug.WriteLine($"{this.GetType().Name} - Disposed instance: {Uid}");
+    }
 }

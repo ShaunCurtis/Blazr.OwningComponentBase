@@ -1,4 +1,6 @@
 ﻿@page "/counter"
+@inherits OwningComponentBase<ViewService>
+@inject IServiceProvider SpaServiceProvider
 
 <PageTitle>Counter</PageTitle>
 
@@ -11,8 +13,21 @@
 @code {
     private int currentCount = 0;
 
+    protected override void OnInitialized()
+    {
+        Service.SetServices(SpaServiceProvider);
+    }
+
     private void IncrementCount()
     {
+        var x = Service.Uid;
+        var y = Service.NotificationService.Uid;
         currentCount++;
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        Debug.WriteLine($"{this.GetType().Name} - Disposed instance");
+        base.Dispose(disposing);
     }
 }

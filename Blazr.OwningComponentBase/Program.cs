@@ -9,9 +9,9 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddScoped<ViewService>();
-builder.Services.AddScoped<NotificationService1>();
-builder.Services.AddScoped<NotificationService2>();
+builder.Services.AddScoped<NotificationService>();
 builder.Services.AddTransient<TransientService>();
+builder.Services.AddSingleton<InstanceTrackerService>();
 
 var app = builder.Build();
 

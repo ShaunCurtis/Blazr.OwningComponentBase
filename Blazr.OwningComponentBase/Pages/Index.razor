@@ -2,37 +2,60 @@
 
 @inherits OwningComponentBase<ViewService>
 
-@inject NotificationService1 NotificationService1
-@inject NotificationService2 NotificationService2
+@inject NotificationService NotificationService
 @inject TransientService TransientService
-@inject IServiceProvider ServiceProvider
+@inject IServiceProvider SpaServiceProvider
 
-<PageTitle>Index</PageTitle>
+<h2 class="text-secondary border-bottom border-secondary mb-4">OwningComponentBase Testing</h2>
 
-<h1>Hello, world!</h1>
-
-<div class="bg-primary text-white m-2 p-2">
+<div class="alert alert-primary">
+    <h5>Service Info</h5>
     <div>
         Service Id: @Service.Uid
     </div>
     <div>
-        Service Notification Service 1 Id: @Service.NotificationService1?.Uid
+        Service => Notification Service Id: @Service.NotificationService?.Uid
     </div>
     <div>
-        Service Notification Service 2 Id: @Service.NotificationService2?.Uid
+        Service => Notification Service Message: @Service.NotificationService?.Message
+    </div>
+    <div class="text-end">
+        <button class="btn btn-primary" @onclick=this.UpdateView>Update View Notification Service Message</button>
     </div>
 </div>
 
-<div class="bg-dark text-white m-2 p-2">
+<div class="alert alert-info">
+    <h5>Component Info</h5>
     <div>
-        Notification Service 1 Id: @NotificationService1.Uid
+        Local Notification Service Id: @NotificationService.Uid
     </div>
     <div>
-        Notification Service 2 Id: @NotificationService2.Uid
+        Local Component Message:  @NotificationService.Message
+    </div>
+    <div class="text-end">
+        <button class="btn btn-primary" @onclick=this.UpdateLocal>Update Component Notification Service Message</button>
     </div>
 </div>
 
 @code {
     protected override void OnInitialized()
-        => Service.SetParentServices(ServiceProvider);
+    {
+        Service.SetServices(SpaServiceProvider);
+        NotificationService.Updated += this.OnUpdate;
+    }
+
+    private void OnUpdate(object? sender, EventArgs e)
+        => this.InvokeAsync(StateHasChanged);
+
+    private void UpdateView()
+        => Service.UpdateView();
+
+    private void UpdateLocal()
+        => NotificationService.NotifyChanged();
+
+    protected override void Dispose(bool disposing)
+    {
+        NotificationService.Updated -= this.OnUpdate;
+        base.Dispose(disposing);
+    }
 }
