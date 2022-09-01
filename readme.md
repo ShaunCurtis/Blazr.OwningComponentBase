@@ -10,13 +10,22 @@ To quote the Microsoft documentation:
 
 Sounds great, but few people use it because either they don't know about it or have tried it and caught out by side effects.
 
-I'll use some demo services and a demo page to demonstrate what is going on.
+Let's look at a typical scenario where it should be used.
+
+We have a UI form that displays a list of members in our club.  It uses a view service to manage the list and a notification service to notify the form if the members lists changes.  The UI form is used in serveral contexts in different pages with different settings, so we don't want a single scoped view service for each SPA session.
+
+We have two approaches:
+
+1. Make the view service a transient service, creating an instance each time we use the form.
+2. Set the form to inherit from `OwningComponentBase`.
+
+To look at the pros and cons of each I'll set up some test services and a test page.
 
 ## Test Services
 
-For the demonstration
+We're giving each service a `Guid` so we can track instances and logging creation and disposal to the console.
 
-A single Transient service class that shows the basic structure of the test services.
+A single Transient service class that also shows the basic structure of the test services.
 
 ```csharp
 public class TransientService : IDisposable
@@ -29,7 +38,7 @@ public class TransientService : IDisposable
 }
 ```
 
-Two Notification Services:
+Two Notification Services so we can review behaviour in two different contexts.
 
 ```csharp
 public class NotificationService1 : IDisposable
@@ -52,7 +61,7 @@ public class NotificationService2 : IDisposable
 }
 ```
 
-And a View Service
+And finally a View Service that uses all three services.  We'll look at `SetParentServices` shortly.
 
 ```csharp
 public class ViewService : IDisposable
@@ -82,7 +91,7 @@ public class ViewService : IDisposable
 }
 ```
 
-These are registered as follows:
+These are registered in the application services container as follows:
 
 ```csharp
 builder.Services.AddScoped<ViewService>();
@@ -92,6 +101,8 @@ builder.Services.AddTransient<TransientService>();
 ```
 
 ## Test Page
+
+Our test page inherits from `OwningComponentBase` injects the other services and displays the Guids for each.
 
 ```csharp
 @page "/"
@@ -133,7 +144,26 @@ builder.Services.AddTransient<TransientService>();
         => Service.SetParentServices(ServiceProvider);
 }
 ```
+
+When you run the solution the page looks like this:
+
 ![capture](./images/index.png)
+
+### The Instance problem
+
+Check the Guids and you'll find that there are two instances of `NotificationService1` and only one instance of `NotificationService2`.
+
+`ViewService` is instantiated in the isolated `OwningComponentBase` container.  As part of instantiation it needs an instance of `NotificationService1`.  It gets the definition from the top level service factory, but, as it's a scoped service, it checks it's own container for an instance, finds none, so creates one.  This is a different instance from the one in the main SPA container which is injected and used in the test page.
+
+This is the main issue with using `OwningComponentBase`.  `ViewService` needs to receive notifications on any changes from the notification service.  To do that it needs the instance of `NotificationService1` instance from the main container, not a new one in the component container.
+
+Check the Guids for `NotificationService2`.  They are the same.  The problem has been solved here.
+
+In `ViewService` we no longer define `NotificationService2` in the new method, so the component container doesn't inject it.  Instead we define a method `SetParentServices`.  This is passed an instance of `IServiceProvider`. 
+
+```csharp
+SetParentServices
+```
 
 ## Outputs
 
